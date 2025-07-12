@@ -248,98 +248,103 @@ const Wheel = React.forwardRef(({ segments, spinning, winnerIndex }, ref) => {
   
   let winnerAngle = 0;
   if (winnerIndex !== null) {
-    for (let i = 0; i < segments.length; i++) {
-      if (i < winnerIndex) winnerAngle += (segments[i].value / 100) * 360;
+    let acc = 0;
+    for (let i = 0; i < winnerIndex; i++) {
+      acc += segments[i].value;
     }
-    winnerAngle += (segments[winnerIndex].value / 100) * 360 / 2;
+    winnerAngle = acc + segments[winnerIndex].value / 2;
   }
-  
-  const spins = 5;
-  const rotation = spinning && winnerIndex !== null
-    ? 360 * spins - winnerAngle
-    : 0;
+
+  const totalValue = segments.reduce((sum, s) => sum + s.value, 0);
+  const segmentAngles = segments.map((s, i) => {
+    const angle = (s.value / totalValue) * 360;
+    const start = startAngle;
+    startAngle += angle;
+    return { ...s, startAngle: start, endAngle: startAngle, angle };
+  });
+
+  const spinDuration = spinning ? 3 : 0;
+  const finalRotation = spinning ? 360 * 5 + (360 - winnerAngle) : 0;
 
   return (
-    <svg
-      width={size}
-      height={size}
-      className="z-0 drop-shadow-2xl"
-      style={{
-        transition: spinning ? 'transform 3s cubic-bezier(0.23, 1, 0.32, 1)' : 'none',
-        transform: `rotate(${rotation}deg)`
-      }}
-      ref={ref}
-      viewBox={`0 0 ${size} ${size}`}
-    >
-      {segments.map((seg, i) => {
-        const angle = (seg.value / 100) * 360;
-        const x1 = radius + radius * Math.cos((Math.PI * startAngle) / 180);
-        const y1 = radius + radius * Math.sin((Math.PI * startAngle) / 180);
-        const x2 = radius + radius * Math.cos((Math.PI * (startAngle + angle)) / 180);
-        const y2 = radius + radius * Math.sin((Math.PI * (startAngle + angle)) / 180);
-        const largeArc = angle > 180 ? 1 : 0;
-        const pathData = `M${radius},${radius} L${x1},${y1} A${radius},${radius} 0 ${largeArc} 1 ${x2},${y2} Z`;
-        
-        const colors = ['#ffe066', '#63e6be', '#845ef7', '#ff6b6b', '#4dabf7', '#ffa94d'];
-        const fill = colors[i % colors.length];
-        
-        const midAngle = startAngle + angle / 2;
-        const textX = radius + (radius * 0.6) * Math.cos((Math.PI * midAngle) / 180);
-        const textY = radius + (radius * 0.6) * Math.sin((Math.PI * midAngle) / 180);
-        
-        const el = (
-          <g key={i}>
-            <path d={pathData} fill={fill} opacity={0.85} />
-            <text
-              x={textX}
-              y={textY}
-              fill="#222"
-              fontSize="1.2em"
-              fontWeight="bold"
-              textAnchor="middle"
-              alignmentBaseline="middle"
-            >
-              {seg.label}
-            </text>
-          </g>
-        );
-        startAngle += angle;
-        return el;
-      })}
-      
-      {/* Улучшенная стрелка-указатель */}
-      <polygon 
-        points={`${radius - 12},12 ${radius + 12},12 ${radius},38`} 
-        fill="#fff" 
-        filter="drop-shadow(0 0 8px #00f6ff)"
-        className="animate-pulse"
-      />
-    </svg>
+    <div className="relative">
+      <svg
+        ref={ref}
+        width={size}
+        height={size}
+        viewBox={`0 0 ${size} ${size}`}
+        className={`transition-transform duration-${spinDuration * 1000} ease-out`}
+        style={{
+          transform: `rotate(${finalRotation}deg)`,
+        }}
+      >
+        <g transform={`translate(${radius}, ${radius})`}>
+          {segmentAngles.map((segment, i) => {
+            const startRad = (segment.startAngle * Math.PI) / 180;
+            const endRad = (segment.endAngle * Math.PI) / 180;
+            const x1 = radius * Math.cos(startRad);
+            const y1 = radius * Math.sin(startRad);
+            const x2 = radius * Math.cos(endRad);
+            const y2 = radius * Math.sin(endRad);
+            const largeArcFlag = segment.angle > 180 ? 1 : 0;
+
+            const pathData = [
+              `M 0 0`,
+              `L ${x1} ${y1}`,
+              `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+              'Z',
+            ].join(' ');
+
+            const colors = [
+              '#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6',
+              '#EC4899', '#06B6D4', '#84CC16', '#F97316', '#6366F1'
+            ];
+
+            return (
+              <g key={i}>
+                <path
+                  d={pathData}
+                  fill={colors[i % colors.length]}
+                  stroke="#1F2937"
+                  strokeWidth="2"
+                />
+                <text
+                  x={radius * 0.7 * Math.cos((segment.startAngle + segment.angle / 2) * Math.PI / 180)}
+                  y={radius * 0.7 * Math.sin((segment.startAngle + segment.angle / 2) * Math.PI / 180)}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fill="white"
+                  fontSize="14"
+                  fontWeight="bold"
+                  className="select-none"
+                >
+                  {segment.label}
+                </text>
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+    </div>
   );
 });
 
-// Иконка TON
+Wheel.displayName = 'Wheel';
+
 function TonIcon({ className }) {
   return (
-    <svg className={className} viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="16" cy="16" r="16" fill="#161C2D" />
-      <path d="M16 24L8 10H24L16 24Z" fill="#00BFFF" />
-      <path d="M16 20L11 12H21L16 20Z" fill="#fff" />
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
     </svg>
   );
 }
 
-// Иконка подарка
 function GiftIcon({ className }) {
   return (
-    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} xmlns="http://www.w3.org/2000/svg">
-      <rect x="3" y="8" width="18" height="13" rx="2" fill="#fff" stroke="#00BFFF" />
-      <path d="M12 8V21" stroke="#00BFFF" strokeWidth={2} />
-      <path d="M3 12H21" stroke="#00BFFF" strokeWidth={2} />
-      <circle cx="8.5" cy="5.5" r="2.5" fill="#00BFFF" />
-      <circle cx="15.5" cy="5.5" r="2.5" fill="#00BFFF" />
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M20 6h-2.18c.11-.31.18-.65.18-1a2.996 2.996 0 0 0-5.5-1.65l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/>
     </svg>
   );
 }
 
-export default App;
+export default App; 
