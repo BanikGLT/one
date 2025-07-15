@@ -1,15 +1,16 @@
 // --- GLOBAL UI/UX UPDATE ---
 import React, { useState, useEffect, useRef } from 'react';
+import Background from './components/Background';
+import TopBar from './components/TopBar';
+import Wheel from './components/Wheel';
+import Timer from './components/Timer';
+import GiftButton from './components/GiftButton';
+import History from './components/History';
+import EmojiPanel from './components/EmojiPanel';
 import './App.css';
 
-const initialPlayers = [
-  { name: 'Alirizo_MS', chance: 16.11, amount: 5.59 },
-  { name: 'halfbacks', chance: 24.5, amount: 8.5 },
-  { name: 'toporowner', chance: 25.92, amount: 8.99 },
-  { name: 'ialyou', chance: 28.83, amount: 10 },
-  { name: 'user5', chance: 4.61, amount: 1.6 },
-  { name: 'user6', chance: 33.57, amount: 4.8 },
-];
+// Пустое начальное состояние для джекпота
+const initialPlayers = [];
 
 const wheelColors = [
   '#22c55e', // зелёный
@@ -26,7 +27,7 @@ const wheelColors = [
 
 function getWheelSegments(players) {
   return players.map((p, i) => ({
-    label: `${p.chance.toFixed(2)}%`,
+    label: `${p.chance.toFixed(1)}%`,
     value: p.chance,
     color: wheelColors[i % wheelColors.length],
   }));
@@ -41,14 +42,17 @@ function App() {
   const [showNotification, setShowNotification] = useState(false);
   const [notificationText, setNotificationText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [buttonPressed, setButtonPressed] = useState(false);
   const [rotation, setRotation] = useState(0);
-  const [history, setHistory] = useState([
-    { winner: '@bearstg', amount: 72, chance: 68 },
-    { winner: '@Gasan_M...', amount: 4030, chance: 48 },
-    { winner: '@user6', amount: 10, chance: 33.57 },
-    { winner: '@halfbacks', amount: 8.5, chance: 24.5 },
-  ]);
+  const [history, setHistory] = useState([]);
+  const [jackpotValue, setJackpotValue] = useState(0); // Общая сумма джекпота
+  const [componentsVisible, setComponentsVisible] = useState({
+    topBar: false,
+    wheel: false,
+    button: false,
+    history: false,
+    emojiPanel: false
+  });
+
   const wheelRef = useRef();
   const audioRef = useRef();
 
@@ -57,13 +61,38 @@ function App() {
     audioRef.current = new Audio();
   }, []);
 
-  const playSound = (type) => {};
+  const playSound = (type) => {
+    // Заглушка для звуковых эффектов
+  };
 
   const showNotificationMessage = (text, duration = 3000) => {
     setNotificationText(text);
     setShowNotification(true);
     setTimeout(() => setShowNotification(false), duration);
   };
+
+  // Анимация появления компонентов
+  useEffect(() => {
+    const timer = setTimeout(() => setComponentsVisible(prev => ({ ...prev, topBar: true })), 200);
+    const timer2 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, wheel: true })), 400);
+    const timer3 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, button: true })), 600);
+    const timer4 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, history: true })), 800);
+    const timer5 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, emojiPanel: true })), 1000);
+
+    return () => {
+      clearTimeout(timer);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+      clearTimeout(timer4);
+      clearTimeout(timer5);
+    };
+  }, []);
+
+  // Обновление суммы джекпота
+  useEffect(() => {
+    const total = players.reduce((sum, p) => sum + p.amount, 0);
+    setJackpotValue(total);
+  }, [players]);
 
   // Старт игры только при 2+ игроках
   const canStart = players.length >= 2 && !isRunning && !spinning && timer === 0;
@@ -91,7 +120,7 @@ function App() {
       setIsRunning(false);
       setTimeout(() => {
         setSpinning(true);
-        // Выбор победителя
+        // Выбор победителя джекпота
         const rand = Math.random() * 100;
         let acc = 0;
         let winner = 0;
@@ -114,15 +143,22 @@ function App() {
         setTimeout(() => {
           setSpinning(false);
           setShowNotification(true);
-          setNotificationText(`Победитель: @${players[winner].name}!`);
-          // Добавить в историю
+          setNotificationText(`🎉 JACKPOT! @${players[winner].name} выиграл ${jackpotValue.toFixed(2)} TON!`);
+          // Добавить в историю джекпота
           setHistory(prev => [
-            { winner: '@' + players[winner].name, amount: players[winner].amount, chance: players[winner].chance.toFixed(2) },
+            { 
+              winner: '@' + players[winner].name, 
+              amount: jackpotValue, 
+              chance: players[winner].chance.toFixed(1),
+              participants: players.length,
+              jackpot: true
+            },
             ...prev.slice(0, 19)
           ]);
           // Сбросить состояние через 3 сек
           setTimeout(() => {
-            setPlayers(initialPlayers);
+            setPlayers([]); // Очищаем игроков после джекпота
+            setJackpotValue(0);
             setTimer(0);
             setWinnerIndex(null);
             setRotation(0);
@@ -131,207 +167,110 @@ function App() {
         }, 3500);
       }, 500);
     }
-  }, [isRunning, timer, players]);
+  }, [isRunning, timer, players, jackpotValue]);
 
   const handleAddGift = async () => {
     setIsLoading(true);
-    setButtonPressed(true);
     await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    // Генерируем случайного пользователя с Telegram-подобным именем
+    const telegramNames = [
+      'alex_winner', 'mega_player', 'lucky_one', 'jackpot_king', 'gift_master',
+      'telegram_pro', 'winner_2024', 'lucky_star', 'gift_hunter', 'jackpot_boss',
+      'telegram_elite', 'winner_zone', 'lucky_champ', 'gift_wizard', 'jackpot_ace'
+    ];
+    
+    const randomName = telegramNames[Math.floor(Math.random() * telegramNames.length)];
+    const giftAmount = Math.random() * 50 + 1; // Случайная сумма гифта 1-50 TON
+    const giftChance = Math.random() * 25 + 5; // Шанс 5-30%
+    
     const newPlayer = {
-      name: `user${players.length + 1}`,
-      chance: Math.random() * 30 + 5,
-      amount: Math.random() * 10 + 1
+      name: randomName,
+      chance: giftChance,
+      amount: giftAmount
     };
+    
     setPlayers(prev => [...prev, newPlayer]);
     setIsLoading(false);
-    setButtonPressed(false);
+    
+    // Показываем уведомление о добавлении гифта
+    showNotificationMessage(`🎁 @${randomName} добавил ${giftAmount.toFixed(2)} TON`, 2000);
   };
 
-  const handleStart = () => {
-    if (canStart) {
-      setTimer(30);
-      setIsRunning(true);
-      setWinnerIndex(null);
-      setRotation(0);
-      setShowNotification(false);
-    }
+  const handleEmojiClick = (emoji) => {
+    showNotificationMessage(`Реакция: ${emoji.label}`, 2000);
   };
 
   const totalGifts = players.length;
-  const totalAmount = players.reduce((sum, p) => sum + p.amount, 0);
+  const totalAmount = jackpotValue;
   const wheelSegments = getWheelSegments(players);
-  const leaderIndex = players.reduce((maxIdx, p, i, arr) => p.chance > arr[maxIdx].chance ? i : maxIdx, 0);
-  const maxChance = players.length ? Math.max(...players.map(p => p.chance)) : 0;
-  const minChance = players.length ? Math.min(...players.map(p => p.chance)) : 0;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start text-white px-2 py-4 relative overflow-hidden">
-      {/* Фон */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <div className="w-full h-full bg-gradient-to-b from-[#23243a] via-[#181926] to-[#181926] opacity-100"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_60%_20%,rgba(60,60,90,0.2)_0%,rgba(24,25,38,0.8)_100%)]"></div>
-      </div>
-
-      {/* Верхний блок */}
-      <div className="top-block">
-        <span className="icon">🎁</span>
-        <span>{totalGifts} гифтов</span>
-        <span className="icon">💎</span>
-        <span>{totalAmount.toFixed(2)} TON</span>
-      </div>
-
-      {/* Колесо и таймер */}
-      <div className="wheel-container">
-        <Wheel
-          segments={wheelSegments}
-          spinning={spinning}
-          winnerIndex={winnerIndex}
-          rotation={rotation}
-          ref={wheelRef}
+    <div className={`app-container ${isRunning ? 'game-active' : ''}`}>
+      {/* Премиальный фон */}
+      <Background />
+      
+      {/* Основной контент */}
+      <div className="app-content">
+        {/* Верхняя панель */}
+        <TopBar 
+          totalGifts={totalGifts}
+          totalAmount={totalAmount}
+          isRunning={isRunning}
+          timer={timer}
+          isVisible={componentsVisible.topBar}
         />
-        <div className="timer-center">
-          <span className="timer-value">{String(timer).padStart(2, '0')}</span>
-          <span className="timer-label">сек</span>
+
+        {/* Колесо и таймер */}
+        <div className="wheel-section">
+          <Wheel
+            segments={wheelSegments}
+            spinning={spinning}
+            winnerIndex={winnerIndex}
+            rotation={rotation}
+            ref={wheelRef}
+            isVisible={componentsVisible.wheel}
+          />
+          <Timer 
+            time={timer}
+            isRunning={isRunning}
+            isSpinning={spinning}
+          />
         </div>
+
+        {/* Кнопка добавления гифтов */}
+        <GiftButton
+          onClick={handleAddGift}
+          isLoading={isLoading}
+          disabled={false}
+          totalGifts={totalGifts}
+          isVisible={componentsVisible.button}
+        />
+
+        {/* История джекпотов */}
+        <History 
+          history={history}
+          isVisible={componentsVisible.history}
+        />
+
+        {/* Панель эмодзи */}
+        <EmojiPanel
+          isVisible={componentsVisible.emojiPanel}
+          onEmojiClick={handleEmojiClick}
+        />
       </div>
 
-      {/* Кнопка добавления гифтов */}
-      <button
-        onClick={handleAddGift}
-        disabled={isLoading}
-        className="btn-main"
-      >
-        🎁 Добавить гифтов
-      </button>
-
-      {/* История раундов/победителей */}
-      <div className="players-list" style={{marginTop:'2.5rem'}}>
-        <div className="player-row" style={{color:'#bfc9d1',fontWeight:600,marginBottom:'0.7em'}}>История раундов</div>
-        {history.map((r, i) => (
-          <div key={i} className="player-row" style={{display:'flex',alignItems:'center',gap:'0.7em'}}>
-            <span style={{fontWeight:600}}>{r.winner}</span>
-            <span style={{color:'#22c55e',fontWeight:500}}>{r.amount} TON</span>
-            <span style={{color:'#38bdf8',fontWeight:500}}>шанс {r.chance}%</span>
-            <span style={{fontSize:'1.2em',marginLeft:'0.5em'}}>🏆</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Панель эмодзи */}
-      <div className="emoji-panel">
-        <span>😀</span>
-        <span>🎉</span>
-        <span>🔥</span>
-        <span>💎</span>
-        <span>🥳</span>
-        <span>😎</span>
-      </div>
-
-      {/* Статистика */}
-      <div className="mt-4 text-center text-sm text-neutral-500 block-animate w-full max-w-[320px] sm:max-w-[420px] mx-auto rounded-2xl">
-        <div>Максимальный шанс: {maxChance.toFixed(2)}%</div>
-        <div>Минимальный шанс: {minChance.toFixed(2)}%</div>
-      </div>
-
-      {/* Уведомление */}
+      {/* Уведомление о джекпоте */}
       {showNotification && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 glass block-shadow px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 fade-in" style={{textShadow:'0 2px 8px #23243a'}}>
-          <span className="text-white font-medium">{notificationText}</span>
+        <div className="notification-overlay">
+          <div className="notification-content jackpot-notification">
+            <div className="notification-icon">🎰</div>
+            <div className="notification-text">{notificationText}</div>
+            <div className="notification-glow"></div>
+          </div>
         </div>
       )}
-
-      <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
-  );
-}
-
-// Колесо с яркими секторами и процентами внутри
-const Wheel = React.forwardRef(({ segments, spinning, winnerIndex, rotation }, ref) => {
-  const size = 340;
-  const radius = size / 2;
-  let startAngle = 0;
-  const totalValue = segments.reduce((sum, s) => sum + s.value, 0);
-  const segmentAngles = segments.map((s, i) => {
-    const angle = (s.value / totalValue) * 360;
-    const start = startAngle;
-    startAngle += angle;
-    return { ...s, startAngle: start, endAngle: startAngle, angle };
-  });
-  return (
-    <svg
-      ref={ref}
-      width={size}
-      height={size}
-      viewBox={`0 0 ${size} ${size}`}
-      style={{transition:'transform 3.5s cubic-bezier(.4,2,.6,1)',transform:`rotate(${rotation}deg)`}}
-    >
-      <g transform={`translate(${radius}, ${radius})`}>
-        {segmentAngles.map((segment, i) => {
-          const startRad = (segment.startAngle * Math.PI) / 180;
-          const endRad = (segment.endAngle * Math.PI) / 180;
-          const x1 = radius * Math.cos(startRad);
-          const y1 = radius * Math.sin(startRad);
-          const x2 = radius * Math.cos(endRad);
-          const y2 = radius * Math.sin(endRad);
-          const largeArcFlag = segment.angle > 180 ? 1 : 0;
-          const pathData = [
-            `M 0 0`,
-            `L ${x1} ${y1}`,
-            `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-            'Z',
-          ].join(' ');
-          return (
-            <g key={i}>
-              <path
-                d={pathData}
-                fill={segment.color}
-                stroke="#181926"
-                strokeWidth="4"
-              />
-              {/* Проценты внутри сектора */}
-              <text
-                x={((radius * 0.65) * Math.cos(((segment.startAngle + segment.angle/2) * Math.PI) / 180))}
-                y={((radius * 0.65) * Math.sin(((segment.startAngle + segment.angle/2) * Math.PI) / 180))}
-                textAnchor="middle"
-                dominantBaseline="middle"
-                fill="#23243a"
-                fontSize="1.15em"
-                fontWeight="700"
-                style={{pointerEvents:'none'}}
-              >
-                {segment.label}
-              </text>
-            </g>
-          );
-        })}
-      </g>
-    </svg>
-  );
-});
-Wheel.displayName = 'Wheel';
-
-// Иконки теперь только в серо-синих/серебристых тонах
-function TonIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <circle cx="12" cy="12" r="10" fill="#23243a" />
-      <path d="M12 6v7.5M12 17a1 1 0 1 0 0-2a1 1 0 0 0 0 2z" stroke="#bfc9d1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-    </svg>
-  );
-}
-
-function GiftIcon({ className }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-      <rect x="3" y="8" width="18" height="13" rx="3" fill="#23243a" />
-      <rect x="9" y="2" width="6" height="6" rx="3" fill="#2a3147" />
-      <path d="M12 8v13" stroke="#bfc9d1" strokeWidth="2" strokeLinecap="round"/>
-    </svg>
   );
 }
 
