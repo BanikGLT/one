@@ -1,9 +1,13 @@
+import os
 import sqlite3
 from pyrogram import Client, filters
 from pyrogram.raw.types import MessageActionStarGift
 
-api_id = "YOUR_API_ID"
-api_hash = "YOUR_API_HASH"
+# Можно брать из переменных окружения или вписать прямо
+api_id = 27613166
+api_hash = "f8db5c0f8345c59926194dd36a07062b"
+phone_number = "+79301221411"
+
 session_name = "userbot"
 
 # --- Инициализация базы данных ---
@@ -21,7 +25,7 @@ CREATE TABLE IF NOT EXISTS gifts (
 """)
 conn.commit()
 
-app = Client(session_name, api_id=api_id, api_hash=api_hash)
+app = Client(session_name, api_id=api_id, api_hash=api_hash, phone_number=phone_number)
 
 @app.on_message(filters.service)
 async def handle_service_message(client, message):
@@ -52,4 +56,9 @@ async def handle_service_message(client, message):
         conn.commit()
         print(f"Подарок от {sender_username or sender_id} сохранён в базе.")
 
-app.run() 
+@app.on_client_started
+async def on_start(client):
+    # Отправляем себе в Избранное сообщение об успешном запуске
+    await client.send_message("me", "Успешно<3")
+
+app.run()
