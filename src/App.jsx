@@ -2,36 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Background from './components/Background';
 import TopBar from './components/TopBar';
-import Wheel from './components/Wheel';
+import RouletteTable from './components/RouletteTable';
 import Timer from './components/Timer';
 import GiftButton from './components/GiftButton';
 import History from './components/History';
-import EmojiPanel from './components/EmojiPanel';
 import './App.css';
 
-// Пустое начальное состояние для джекпота
 const initialPlayers = [];
-
-const wheelColors = [
-  '#22c55e', // зелёный
-  '#38bdf8', // голубой
-  '#a78bfa', // фиолетовый
-  '#fbbf24', // жёлтый
-  '#f472b6', // розовый
-  '#818cf8', // сине-фиолетовый
-  '#f87171', // красный
-  '#34d399', // салатовый
-  '#60a5fa', // синий
-  '#facc15', // лимонный
-];
-
-function getWheelSegments(players) {
-  return players.map((p, i) => ({
-    label: `${p.chance.toFixed(1)}%`,
-    value: p.chance,
-    color: wheelColors[i % wheelColors.length],
-  }));
-}
 
 function App() {
   const [players, setPlayers] = useState(initialPlayers);
@@ -44,69 +21,72 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [rotation, setRotation] = useState(0);
   const [history, setHistory] = useState([]);
-  const [jackpotValue, setJackpotValue] = useState(0); // Общая сумма джекпота
-  const [componentsVisible, setComponentsVisible] = useState({
-    topBar: false,
-    wheel: false,
-    button: false,
-    history: false,
-    emojiPanel: false
-  });
+  const [jackpotValue, setJackpotValue] = useState(0);
+  const [showPointer, setShowPointer] = useState(false);
+  const [pointerAngle, setPointerAngle] = useState(0);
+  const [isShooting, setIsShooting] = useState(false);
+  const [isRoundActive, setIsRoundActive] = useState(false);
+  const [phase, setPhase] = useState('waiting'); // 'waiting' | 'spinning' | 'result'
 
   const wheelRef = useRef();
-  const audioRef = useRef();
-
-  // Звуковые эффекты (заглушка)
-  useEffect(() => {
-    audioRef.current = new Audio();
-  }, []);
-
-  const playSound = (type) => {
-    // Заглушка для звуковых эффектов
-  };
-
-  const showNotificationMessage = (text, duration = 3000) => {
-    setNotificationText(text);
-    setShowNotification(true);
-    setTimeout(() => setShowNotification(false), duration);
-  };
-
-  // Анимация появления компонентов
-  useEffect(() => {
-    const timer = setTimeout(() => setComponentsVisible(prev => ({ ...prev, topBar: true })), 200);
-    const timer2 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, wheel: true })), 400);
-    const timer3 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, button: true })), 600);
-    const timer4 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, history: true })), 800);
-    const timer5 = setTimeout(() => setComponentsVisible(prev => ({ ...prev, emojiPanel: true })), 1000);
-
-    return () => {
-      clearTimeout(timer);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-      clearTimeout(timer5);
-    };
-  }, []);
 
   // Обновление суммы джекпота
   useEffect(() => {
-    const total = players.reduce((sum, p) => sum + p.amount, 0);
+    const total = players.reduce((sum, p) => sum + (p.amount || 0), 0);
     setJackpotValue(total);
   }, [players]);
 
-  // Старт игры только при 2+ игроках
-  const canStart = players.length >= 2 && !isRunning && !spinning && timer === 0;
+  // Функция проверки: есть ли 2+ активных игроков
+  const hasActivePlayers = players.filter(p => !p.lost && p.name).length >= 2;
 
-  // Автоматический старт игры при 2+ игроках
+  // --- Исправленная логика таймера старта игры ---
   useEffect(() => {
-    if (players.length >= 2 && !isRunning && !spinning && timer === 0) {
-      setTimer(30);
+    if (spinning) return;
+    // Если сейчас показывается результат — ничего не делаем, ждём сброса
+    if (phase === 'result') return;
+    // Если игроков <2 и не в ожидании — сбросить всё и phase='waiting'
+    if (players.length < 2 && phase !== 'waiting') {
+      setPhase('waiting');
+      setIsRunning(false);
+      setTimer(0);
+      setIsRoundActive(false);
+      setShowPointer(false);
+      setIsShooting(false);
+      setSpinning(false);
+      setWinnerIndex(null);
+      setRotation(0);
+      setPointerAngle(0);
+      return;
+    }
+    // Если phase==='result' и появились новые игроки — только тогда вернуть phase='waiting'
+    if (phase === 'result' && hasActivePlayers) {
+      setPhase('waiting');
+      setTimer(3);
       setIsRunning(true);
       setWinnerIndex(null);
       setRotation(0);
       setShowNotification(false);
+      setIsRoundActive(false);
+      setIsShooting(false);
+      setSpinning(false);
+      setPointerAngle(0);
+      setShowPointer(false);
+      return;
     }
-  }, [players, isRunning, spinning, timer]);
+    // Обычный старт раунда
+    if (hasActivePlayers && !isRunning && timer === 0 && phase === 'waiting') {
+      setPointerAngle(0);
+      setShowPointer(false);
+      setTimer(3);
+      setIsRunning(true);
+      setWinnerIndex(null);
+      setRotation(0);
+      setShowNotification(false);
+      setIsRoundActive(false);
+      setIsShooting(false);
+      setSpinning(false);
+    }
+  }, [players, isRunning, spinning, timer, phase, hasActivePlayers]);
 
   // Таймер и запуск вращения
   useEffect(() => {
@@ -118,6 +98,13 @@ function App() {
       return () => clearInterval(interval);
     } else if (timer === 0 && isRunning) {
       setIsRunning(false);
+      setShowPointer(true);
+      setIsRoundActive(true);
+      setSpinning(false);
+      setIsShooting(false);
+      setWinnerIndex(null);
+      setRotation(0);
+      setPhase('spinning');
       setTimeout(() => {
         setSpinning(true);
         // Выбор победителя джекпота
@@ -131,145 +118,143 @@ function App() {
             break;
           }
         }
-        setWinnerIndex(winner);
-        // Анимация вращения
-        const total = players.reduce((sum, p) => sum + p.chance, 0);
-        let accAngle = 0;
-        for (let i = 0; i < winner; i++) {
-          accAngle += (players[i].chance / total) * 360;
-        }
-        const winnerAngle = accAngle + (players[winner].chance / total) * 180;
-        setRotation(360 * 5 - winnerAngle);
-        setTimeout(() => {
-          setSpinning(false);
-          setShowNotification(true);
-          setNotificationText(`🎉 JACKPOT! @${players[winner].name} выиграл ${jackpotValue.toFixed(2)} TON!`);
-          // Добавить в историю джекпота
-          setHistory(prev => [
-            { 
-              winner: '@' + players[winner].name, 
-              amount: jackpotValue, 
-              chance: players[winner].chance.toFixed(1),
-              participants: players.length,
-              jackpot: true
-            },
-            ...prev.slice(0, 19)
-          ]);
-          // Сбросить состояние через 3 сек
+        const winnerPlayer = players[winner];
+        if (!winnerPlayer) {
           setTimeout(() => {
-            setPlayers([]); // Очищаем игроков после джекпота
+            setSpinning(false);
+            setShowPointer(false);
+            setPlayers([]);
             setJackpotValue(0);
             setTimer(0);
             setWinnerIndex(null);
             setRotation(0);
             setShowNotification(false);
-          }, 3000);
-        }, 3500);
+            setPointerAngle(0);
+            setIsRoundActive(false);
+            setPhase('waiting');
+          }, 1000);
+          return;
+        }
+        setWinnerIndex(winner);
+        // --- Плавное вращение револьвера ---
+        const playerCount = players.length;
+        const anglePerPlayer = 360 / playerCount;
+        const revolverSpins = 4; // количество оборотов
+        const targetAngle = (anglePerPlayer * winner) % 360;
+        const startAngle = pointerAngle % 360;
+        let delta = targetAngle - startAngle;
+        if (delta < 0) delta += 360;
+        const finalAngle = startAngle + revolverSpins * 360 + delta;
+        setPointerAngle(finalAngle); // <-- pointerAngle меняется только здесь
+        setTimeout(() => {
+          setIsShooting(true);
+          setTimeout(() => {
+            setIsShooting(false);
+            setSpinning(false);
+            setShowNotification(true);
+            setNotificationText(`🎉 JACKPOT! @${winnerPlayer.name} выиграл ${jackpotValue.toFixed(2)} TON!`);
+            setHistory(prev => [
+              { 
+                winner: '@' + winnerPlayer.name, 
+                amount: jackpotValue, 
+                chance: winnerPlayer.chance.toFixed(1),
+                participants: players.length,
+                jackpot: true
+              },
+              ...prev.slice(0, 19)
+            ]);
+            setPhase('result');
+            setTimeout(() => {
+              setPlayers([]);
+              setJackpotValue(0);
+              setTimer(0);
+              setWinnerIndex(null);
+              setRotation(0);
+              setShowNotification(false);
+              setIsRoundActive(false);
+              setIsShooting(false);
+              setSpinning(false);
+              setShowPointer(false);
+              setPointerAngle(0); // <-- pointerAngle сбрасывается только при полном сбросе
+              setPhase('waiting');
+            }, 5000);
+          }, 800);
+        }, 1800);
       }, 500);
     }
-  }, [isRunning, timer, players, jackpotValue]);
+  }, [isRunning, timer, players, jackpotValue, pointerAngle]);
 
   const handleAddGift = async () => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1200));
-    
-    // Генерируем случайного пользователя с Telegram-подобным именем
     const telegramNames = [
       'alex_winner', 'mega_player', 'lucky_one', 'jackpot_king', 'gift_master',
       'telegram_pro', 'winner_2024', 'lucky_star', 'gift_hunter', 'jackpot_boss',
       'telegram_elite', 'winner_zone', 'lucky_champ', 'gift_wizard', 'jackpot_ace'
     ];
-    
     const randomName = telegramNames[Math.floor(Math.random() * telegramNames.length)];
-    const giftAmount = Math.random() * 50 + 1; // Случайная сумма гифта 1-50 TON
-    const giftChance = Math.random() * 25 + 5; // Шанс 5-30%
-    
+    const giftAmount = Math.random() * 50 + 1;
+    const giftChance = Math.random() * 25 + 5;
     const newPlayer = {
       name: randomName,
       chance: giftChance,
       amount: giftAmount
     };
-    
     setPlayers(prev => [...prev, newPlayer]);
     setIsLoading(false);
-    
-    // Показываем уведомление о добавлении гифта
-    showNotificationMessage(`🎁 @${randomName} добавил ${giftAmount.toFixed(2)} TON`, 2000);
-  };
-
-  const handleEmojiClick = (emoji) => {
-    showNotificationMessage(`Реакция: ${emoji.label}`, 2000);
+    setShowNotification(true);
+    setNotificationText(`🎁 @${randomName} добавил ${giftAmount.toFixed(2)} TON`);
+    setTimeout(() => setShowNotification(false), 2000);
   };
 
   const totalGifts = players.length;
   const totalAmount = jackpotValue;
-  const wheelSegments = getWheelSegments(players);
+
+  const roulettePlayers = players.map((player, i) => ({
+    id: i,
+    name: player.name,
+    avatarUrl: `https://api.dicebear.com/7.x/identicon/svg?seed=${player.name}`,
+  }));
 
   return (
-    <div className={`app-container ${isRunning ? 'game-active' : ''}`}>
-      {/* Премиальный фон */}
+    <div className="app-container">
       <Background />
-      
-      {/* Основной контент */}
       <div className="app-content">
-        {/* Верхняя панель */}
         <TopBar 
           totalGifts={totalGifts}
           totalAmount={totalAmount}
           isRunning={isRunning}
           timer={timer}
-          isVisible={componentsVisible.topBar}
         />
-
-        {/* Колесо и таймер */}
         <div className="wheel-section">
-          <Wheel
-            segments={wheelSegments}
-            spinning={spinning}
-            winnerIndex={winnerIndex}
-            rotation={rotation}
-            ref={wheelRef}
-            isVisible={componentsVisible.wheel}
+          {/* Стол всегда виден */}
+          <RouletteTable
+            players={roulettePlayers}
+            showPointer={phase !== 'waiting'}
+            pointerAngle={pointerAngle}
+            isShooting={isShooting}
+            isRoundActive={isRoundActive}
           />
-          <Timer 
-            time={timer}
-            isRunning={isRunning}
-            isSpinning={spinning}
-          />
+          {/* Таймер только если phase==='waiting', 2+ активных игроков и хотя бы один не проиграл */}
+          {phase === 'waiting' && hasActivePlayers && timer > 0 && (
+            <Timer 
+              time={timer}
+              isRunning={isRunning}
+              isSpinning={spinning}
+            />
+          )}
         </div>
-
-        {/* Кнопка добавления гифтов */}
         <GiftButton
           onClick={handleAddGift}
           isLoading={isLoading}
           disabled={false}
           totalGifts={totalGifts}
-          isVisible={componentsVisible.button}
         />
-
-        {/* История джекпотов */}
         <History 
           history={history}
-          isVisible={componentsVisible.history}
-        />
-
-        {/* Панель эмодзи */}
-        <EmojiPanel
-          isVisible={componentsVisible.emojiPanel}
-          onEmojiClick={handleEmojiClick}
         />
       </div>
-
-      {/* Уведомление о джекпоте */}
-      {showNotification && (
-        <div className="notification-overlay">
-          <div className="notification-content jackpot-notification">
-            <div className="notification-icon">🎰</div>
-            <div className="notification-text">{notificationText}</div>
-            <div className="notification-glow"></div>
-          </div>
-        </div>
-      )}
+      {/* Убраны всплывающие надписи для гифтов и победителя */}
     </div>
   );
 }

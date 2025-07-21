@@ -1,443 +1,70 @@
+/* Контейнер таймера */
 .timer-container {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 120px;
-  height: 120px;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  z-index: 30;
 }
 
-/* Внешняя тень */
-.timer-shadow {
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, transparent 70%);
-  filter: blur(15px);
-  z-index: -1;
-  animation: shadowPulse 3s ease-in-out infinite;
+/* Основной таймер */
+.timer {
+  background: linear-gradient(135deg, rgba(35,36,58,0.95) 0%, rgba(40,48,70,0.95) 100%);
+  border: 2px solid rgba(56,189,248,0.3);
+  border-radius: 16px;
+  padding: 1rem 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  text-align: center;
+  min-width: 120px;
 }
 
-@keyframes shadowPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
+.timer.spinning {
+  border-color: rgba(34,197,94,0.5);
+  background: linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(40,48,70,0.95) 100%);
 }
 
-/* Основной контейнер */
-.timer-main {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #1a1a2e 0%, #23243a 100%);
-  border: 3px solid rgba(56,189,248,0.3);
-  box-shadow: 
-    0 8px 32px rgba(0,0,0,0.4),
-    0 4px 16px rgba(56,189,248,0.2),
-    inset 0 2px 4px rgba(255,255,255,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-}
-
-.timer-main::before {
-  content: '';
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent, rgba(56,189,248,0.3), transparent);
-  animation: borderRotate 4s linear infinite;
-  z-index: -1;
-}
-
-@keyframes borderRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Эффекты состояния */
-.timer-main.pulse {
-  animation: timerPulse 0.2s ease-in-out;
-}
-
-@keyframes timerPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-
-.timer-main.glow {
-  animation: timerGlow 1s ease-in-out;
-}
-
-@keyframes timerGlow {
-  0%, 100% { 
-    box-shadow: 
-      0 8px 32px rgba(0,0,0,0.4),
-      0 4px 16px rgba(56,189,248,0.2),
-      inset 0 2px 4px rgba(255,255,255,0.1);
-  }
-  50% { 
-    box-shadow: 
-      0 12px 48px rgba(0,0,0,0.5),
-      0 8px 32px rgba(56,189,248,0.4),
-      inset 0 2px 4px rgba(255,255,255,0.1);
-  }
-}
-
-/* Фоновая подсветка */
-.timer-glow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  opacity: 0.1;
-  filter: blur(20px);
-  animation: glowPulse 2s ease-in-out infinite;
-}
-
-@keyframes glowPulse {
-  0%, 100% { opacity: 0.1; transform: scale(1); }
-  50% { opacity: 0.2; transform: scale(1.1); }
-}
-
-/* Внутренний круг */
-.timer-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Прогресс-кольцо */
-.timer-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.progress-ring {
-  transition: stroke-dasharray 0.5s ease-in-out;
-  filter: drop-shadow(0 0 4px currentColor);
-}
-
-/* Центральное содержимое */
-.timer-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
+/* Значение таймера */
 .timer-value {
-  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #22c55e;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
   line-height: 1;
-  text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  transition: all 0.3s ease;
-  letter-spacing: 0.05em;
+  margin-bottom: 0.25rem;
 }
 
+.timer.spinning .timer-value {
+  color: #fbbf24;
+  animation: spinPulse 0.5s ease-in-out infinite;
+}
+
+@keyframes spinPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+/* Метка таймера */
 .timer-label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: rgba(191,201,209,0.8);
-  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* Статусные индикаторы */
-.timer-status {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  z-index: 3;
-}
-
-.status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 8px rgba(34,197,94,0.5);
-  animation: statusPulse 1s ease-in-out infinite;
-}
-
-@keyframes statusPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.7; transform: scale(1.2); }
-}
-
-/* Индикатор вращения */
-.spinning-indicator {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 3;
-}
-
-.spinning-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #38bdf8;
-  animation: dotSpin 1s ease-in-out infinite;
-}
-
-.dot:nth-child(1) { animation-delay: 0s; }
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
-
-@keyframes dotSpin {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-
-/* Анимированные частицы */
-.timer-particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  overflow: hidden;
-  border-radius: 50%;
-}
-
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  animation: particleFloat 4s linear infinite;
-}
-
-.particle:nth-child(1) { top: 10%; left: 20%; animation-delay: 0s; }
-.particle:nth-child(2) { top: 20%; right: 15%; animation-delay: 0.5s; }
-.particle:nth-child(3) { bottom: 30%; left: 10%; animation-delay: 1s; }
-.particle:nth-child(4) { bottom: 20%; right: 25%; animation-delay: 1.5s; }
-.particle:nth-child(5) { top: 50%; left: 5%; animation-delay: 2s; }
-.particle:nth-child(6) { top: 60%; right: 5%; animation-delay: 2.5s; }
-.particle:nth-child(7) { bottom: 10%; left: 50%; animation-delay: 3s; }
-.particle:nth-child(8) { bottom: 5%; right: 50%; animation-delay: 3.5s; }
-
-@keyframes particleFloat {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0);
-  }
-  20% {
-    opacity: 1;
-    transform: translateY(-15px) scale(1);
-  }
-  80% {
-    opacity: 1;
-    transform: translateY(-30px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-45px) scale(0);
-  }
-}
-
-/* Дополнительные эффекты */
-.timer-effects {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.effect-ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(56,189,248,0.1);
-  animation: effectRotate 8s linear infinite;
-}
-
-.ring-1 {
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  animation-duration: 8s;
-}
-
-.ring-2 {
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
-  animation-duration: 12s;
-  animation-direction: reverse;
-}
-
-.ring-3 {
-  top: -30px;
-  left: -30px;
-  right: -30px;
-  bottom: -30px;
-  animation-duration: 16s;
-}
-
-@keyframes effectRotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  letter-spacing: 0.5px;
 }
 
 /* Адаптивность */
-@media (max-width: 768px) {
-  .timer-container {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .timer-main {
-    width: 100px;
-    height: 100px;
-    border-width: 2px;
-  }
-  
-  .timer-shadow {
-    width: 120px;
-    height: 120px;
-  }
-  
-  .timer-progress {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .timer-value {
-    font-size: 2.2rem !important;
-  }
-  
-  .timer-label {
-    font-size: 0.75rem;
-  }
-  
-  .status-dot {
-    width: 10px;
-    height: 10px;
-  }
-  
-  .dot {
-    width: 5px;
-    height: 5px;
-  }
-}
-
 @media (max-width: 480px) {
-  .timer-container {
-    width: 80px;
-    height: 80px;
-  }
-  
-  .timer-main {
-    width: 80px;
-    height: 80px;
-    border-width: 2px;
-  }
-  
-  .timer-shadow {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .timer-progress {
-    width: 80px;
-    height: 80px;
+  .timer {
+    padding: 0.75rem 1rem;
+    min-width: 100px;
   }
   
   .timer-value {
-    font-size: 1.8rem !important;
+    font-size: 1.5rem;
   }
   
   .timer-label {
     font-size: 0.625rem;
   }
-  
-  .status-dot {
-    width: 8px;
-    height: 8px;
-  }
-  
-  .dot {
-    width: 4px;
-    height: 4px;
-  }
-}
-
-/* Интерактивные состояния */
-.timer-main:hover {
-  border-color: rgba(56,189,248,0.5);
-  box-shadow: 
-    0 12px 48px rgba(0,0,0,0.5),
-    0 6px 24px rgba(56,189,248,0.3),
-    inset 0 2px 4px rgba(255,255,255,0.15);
-}
-
-.timer-main:hover .timer-glow {
-  animation: glowPulse 1s ease-in-out infinite;
-}
-
-/* Анимации появления */
-.timer-container {
-  animation: timerSlideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes timerSlideIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.8);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* Специальные эффекты для критического времени */
-.timer-main.pulse .timer-value {
-  animation: criticalPulse 0.2s ease-in-out;
-}
-
-@keyframes criticalPulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-/* Эффект при завершении времени */
-.timer-main:has(.timer-value:contains("00")) {
-  animation: timeUp 0.5s ease-in-out;
-}
-
-@keyframes timeUp {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
 } 

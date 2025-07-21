@@ -1,0 +1,182 @@
+[
+  {
+    "name": "Durov’s Cap",
+    "model": "Bordeaux",
+    "backdrop": "Desert Sand",
+    "amount": "600",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-205.large.jpg",
+    "created_at": "2025-07-20T15:14:30.527021Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Frosted Brew",
+    "backdrop": "Azure Blue",
+    "amount": "745",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-718.large.jpg",
+    "created_at": "2025-07-20T14:35:15.394885Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Krueger",
+    "backdrop": "Amber",
+    "amount": "575",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3923.large.jpg",
+    "created_at": "2025-07-20T14:33:21.605118Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Purple",
+    "amount": "575",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-4574.large.jpg",
+    "created_at": "2025-07-20T14:32:09.382148Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Apple Slice",
+    "backdrop": "Aquamarine",
+    "amount": "644.96",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-2021.large.jpg",
+    "created_at": "2025-07-20T13:05:35.265576Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Apple Slice",
+    "backdrop": "Aquamarine",
+    "amount": "590.21",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-2021.large.jpg",
+    "created_at": "2025-07-20T11:33:34.168372Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:11:04.057367Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:10:40.511296Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:10:12.256716Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:09:34.838114Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:09:11.747456Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:08:43.974964Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:04:58.453965Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:03:53.299115Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:02:49.327437Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:02:14.746969Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "649",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:01:23.883474Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "650",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T11:00:28.933076Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Shadow",
+    "backdrop": "Chocolate",
+    "amount": "620",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-4615.large.jpg",
+    "created_at": "2025-07-20T09:40:05.016708Z"
+  },
+  {
+    "name": "Durov’s Cap",
+    "model": "Cotton Candy",
+    "backdrop": "Lavender",
+    "amount": "588.8",
+    "floor_price": "623.99",
+    "photo_url": "https://nft.fragment.com/gift/durovscap-3121.large.jpg",
+    "created_at": "2025-07-20T09:07:19.095553Z"
+  }
+]

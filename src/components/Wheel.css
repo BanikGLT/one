@@ -1,307 +1,158 @@
-.wheel-wrapper {
+/* Контейнер колеса */
+.wheel-container {
   position: relative;
-  width: 340px;
-  height: 340px;
+  width: 100vw;
+  max-width: 420px;
+  min-width: 180px;
+  height: auto;
+  aspect-ratio: 1/1;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto;
-  opacity: 0;
-  transform: translateY(30px) scale(0.95);
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.wheel-wrapper.visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Внешняя тень колеса */
-.wheel-shadow {
-  position: absolute;
-  width: 360px;
-  height: 360px;
+.wheel-svg {
+  width: 100vw;
+  max-width: 420px;
+  min-width: 180px;
+  height: auto;
+  aspect-ratio: 1/1;
   border-radius: 50%;
-  background: radial-gradient(ellipse at center, rgba(0,0,0,0.4) 0%, transparent 70%);
-  filter: blur(20px);
-  z-index: -1;
-  animation: shadowPulse 3s ease-in-out infinite;
+  background: #18181b;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  display: block;
 }
 
-@keyframes shadowPulse {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.05); }
+.wheel-svg.spinning {
+  transition: transform 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* Основное колесо */
-.wheel {
-  position: relative;
-  z-index: 2;
-  filter: drop-shadow(0 8px 32px rgba(0,0,0,0.3));
-  transition: transform 0.1s ease-out;
+.wheel-segment {
+  transition: filter 0.2s;
 }
 
-.wheel.spinning {
-  animation: spin 3.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+.wheel-segment.winner {
+  filter: drop-shadow(0 0 16px #22c55e) drop-shadow(0 0 32px #22c55e);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(1800deg); }
-}
-
-/* Центральная стрелка */
-.wheel-pointer {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10;
-  pointer-events: none;
-}
-
-.pointer-arrow {
-  width: 0;
-  height: 0;
-  border-left: 12px solid transparent;
-  border-right: 12px solid transparent;
-  border-top: 20px solid #ffffff;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-  position: relative;
-  z-index: 2;
-}
-
-.pointer-glow {
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(8px);
-  animation: pointerGlow 2s ease-in-out infinite;
-}
-
-@keyframes pointerGlow {
-  0%, 100% { opacity: 0.3; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.1); }
-}
-
-/* Анимированные частицы */
-.wheel-particles {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  border-radius: 50%;
-}
-
-.particle {
-  position: absolute;
-  width: 3px;
-  height: 3px;
-  background: #38bdf8;
-  border-radius: 50%;
-  animation: wheelParticleFloat 4s linear infinite;
-  box-shadow: 0 0 6px rgba(56,189,248,0.8);
-}
-
-.particle:nth-child(1) { top: 10%; left: 50%; animation-delay: 0s; }
-.particle:nth-child(2) { top: 20%; right: 20%; animation-delay: 0.5s; }
-.particle:nth-child(3) { top: 50%; right: 10%; animation-delay: 1s; }
-.particle:nth-child(4) { bottom: 20%; right: 20%; animation-delay: 1.5s; }
-.particle:nth-child(5) { bottom: 10%; left: 50%; animation-delay: 2s; }
-.particle:nth-child(6) { bottom: 20%; left: 20%; animation-delay: 2.5s; }
-.particle:nth-child(7) { top: 50%; left: 10%; animation-delay: 3s; }
-.particle:nth-child(8) { top: 20%; left: 20%; animation-delay: 3.5s; }
-
-@keyframes wheelParticleFloat {
-  0% {
-    opacity: 0;
-    transform: translateY(0) scale(0);
-  }
-  20% {
-    opacity: 1;
-    transform: translateY(-10px) scale(1);
-  }
-  80% {
-    opacity: 1;
-    transform: translateY(-20px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-30px) scale(0);
-  }
-}
-
-/* Эффект свечения при вращении */
-.spinning-glow {
-  position: absolute;
-  top: -20px;
-  left: -20px;
-  right: -20px;
-  bottom: -20px;
-  background: radial-gradient(circle at center, rgba(56,189,248,0.2) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(30px);
-  animation: spinningGlow 3.5s ease-in-out;
-  z-index: 1;
-}
-
-@keyframes spinningGlow {
-  0% { opacity: 0; transform: scale(0.8); }
-  50% { opacity: 0.6; transform: scale(1.2); }
-  100% { opacity: 0; transform: scale(1); }
-}
-
-/* Пустое состояние колеса */
-.empty-wheel-state {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+/* Пустое состояние */
+.wheel-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(255,255,255,0.6);
   text-align: center;
-  z-index: 5;
-  pointer-events: none;
-  animation: emptyStateFade 1s ease-in-out;
 }
 
-@keyframes emptyStateFade {
-  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
-  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-
-.empty-icon {
+.wheel-empty-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-  animation: emptyIconFloat 3s ease-in-out infinite;
+  opacity: 0.5;
 }
 
-@keyframes emptyIconFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-.empty-text {
-  font-size: 1rem;
+.wheel-empty-text {
+  font-size: 0.875rem;
   font-weight: 500;
-  color: rgba(191,201,209,0.8);
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
   max-width: 200px;
   line-height: 1.4;
 }
 
+/* Указатель */
+.wheel-pointer {
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 18px solid transparent;
+  border-right: 18px solid transparent;
+  border-top: 32px solid #fbbf24;
+  z-index: 20;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+}
+
+.wheel-pointer::after {
+  content: '';
+  position: absolute;
+  top: -32px;
+  left: -12px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 18px solid #fff;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
-  .wheel-wrapper {
-    width: 280px;
-    height: 280px;
-  }
-  
-  .wheel-shadow {
-    width: 300px;
-    height: 300px;
-  }
-  
-  .wheel svg {
-    width: 280px;
-    height: 280px;
-  }
-  
-  .empty-icon {
-    font-size: 2.5rem;
-  }
-  
-  .empty-text {
-    font-size: 0.875rem;
-    max-width: 160px;
+  .wheel-container, .wheel-svg {
+    max-width: 98vw;
   }
 }
 
 @media (max-width: 480px) {
-  .wheel-wrapper {
+  .wheel-container {
     width: 240px;
     height: 240px;
   }
-  
-  .wheel-shadow {
-    width: 260px;
-    height: 260px;
-  }
-  
-  .wheel svg {
+  .wheel-svg {
     width: 240px;
     height: 240px;
   }
-  
-  .empty-icon {
-    font-size: 2rem;
+  .wheel-pointer {
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-top-width: 14px;
+    top: -10px;
   }
-  
-  .empty-text {
-    font-size: 0.75rem;
-    max-width: 140px;
+  .wheel-pointer::after {
+    border-left-width: 5px;
+    border-right-width: 5px;
+    border-top-width: 8px;
+    top: -14px;
+    left: -5px;
   }
-  
-  .pointer-arrow {
-    border-left-width: 10px;
-    border-right-width: 10px;
-    border-top-width: 16px;
+  .wheel-avatar circle {
+    r: 12 !important;
+    stroke-width: 3 !important;
+  }
+  .wheel-avatar text {
+    font-size: 12px !important;
   }
 }
 
-/* Дополнительные эффекты */
-.wheel-wrapper::before {
-  content: '';
-  position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, transparent, rgba(56,189,248,0.1), transparent);
-  animation: wheelBorderGlow 4s ease-in-out infinite;
-  z-index: -1;
-}
-
-@keyframes wheelBorderGlow {
-  0%, 100% { opacity: 0; transform: rotate(0deg); }
-  50% { opacity: 1; transform: rotate(180deg); }
-}
-
-/* Эффекты для активного состояния */
-.wheel-wrapper.game-active {
-  animation: wheelActivePulse 2s ease-in-out infinite;
-}
-
-@keyframes wheelActivePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-
-/* Улучшенные тени для секторов */
-.wheel svg path {
-  transition: filter 0.3s ease;
-}
-
-.wheel svg path:hover {
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)) brightness(1.1);
-}
-
-/* Специальные эффекты для текста */
-.wheel svg text {
-  transition: all 0.3s ease;
-}
-
-.wheel svg text:hover {
-  text-shadow: 0 4px 8px rgba(0,0,0,0.8);
-  font-weight: 800;
+@media (max-width: 360px) {
+  .wheel-container {
+    width: 160px;
+    height: 160px;
+  }
+  .wheel-svg {
+    width: 160px;
+    height: 160px;
+  }
+  .wheel-pointer {
+    border-left-width: 6px;
+    border-right-width: 6px;
+    border-top-width: 10px;
+    top: -6px;
+  }
+  .wheel-pointer::after {
+    border-left-width: 3px;
+    border-right-width: 3px;
+    border-top-width: 5px;
+    top: -10px;
+    left: -3px;
+  }
+  .wheel-avatar circle {
+    r: 8 !important;
+    stroke-width: 2 !important;
+  }
+  .wheel-avatar text {
+    font-size: 8px !important;
+  }
 } 
