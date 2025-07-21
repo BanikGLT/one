@@ -1,8 +1,7 @@
 import asyncio
 import sqlite3
-from telethon import TelegramClient
-from telethon.tl.functions.payments import GetUserStarGifts
-from telethon.tl.types import InputUserSelf
+from telethon import TelegramClient, events
+from telethon.tl.types import MessageService
 
 api_id = 27613166
 api_hash = "f8db5c0f8345c59926194dd36a07062b"
@@ -14,67 +13,48 @@ conn = sqlite3.connect("gifts.db")
 cursor = conn.cursor()
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS gifts (
-    id INTEGER PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     sender_id INTEGER,
     sender_username TEXT,
-    gift_id INTEGER,
-    stars INTEGER,
-    message TEXT
+    action_type TEXT,
+    raw_action TEXT
 )
 """)
 conn.commit()
 
 client = TelegramClient(session_name, api_id, api_hash)
 
-async def check_new_gifts():
-    while True:
-        gifts = await client(GetUserStarGifts(
-            user_id=InputUserSelf(),
-            offset="",
-            limit=100
-        ))
-        for user_gift in gifts.gifts:
-            cursor.execute("SELECT 1 FROM gifts WHERE id = ?", (user_gift.id,))
-            if cursor.fetchone():
-                continue  # уже обработан
+@client.on(events.NewMessage)
+async def handle_service(event):
+    if isinstance(event.message, MessageService):
+        sender = await event.get_sender()
+        sender_id = sender.id if sender else None
+        sender_username = getattr(sender, "username", None)
+        action_type = type(event.message.action).__name__
+        raw_action = str(event.message.action)
 
-            sender_id = user_gift.from_id.user_id if user_gift.from_id else None
-            sender_username = None
-            if sender_id:
-                try:
-                    sender = await client.get_entity(sender_id)
-                    sender_username = getattr(sender, "username", None)
-                except Exception:
-                    sender_username = None
-            gift_id = user_gift.gift.id
-            stars = user_gift.gift.stars
-            msg_text = getattr(user_gift, "message", "")
+        # Сохраняем в базу всё, что приходит как сервисное сообщение
+        cursor.execute(
+            "INSERT INTO gifts (sender_id, sender_username, action_type, raw_action) VALUES (?, ?, ?, ?)",
+            (sender_id, sender_username, action_type, raw_action)
+        )
+        conn.commit()
+        print(f"Сервисное сообщение от {sender_username or sender_id}: {action_type}")
 
-            # Отправляем благодарность отправителю
-            if sender_id:
-                text = (
-                    f"Спасибо за подарок!\n"
-                    f"ID подарка: {gift_id}\n"
-                    f"Звёзд: {stars}\n"
-                    f"Сообщение: {msg_text}"
-                )
-                await client.send_message(sender_id, text)
-
-            # Сохраняем в базе
-            cursor.execute(
-                "INSERT INTO gifts (id, sender_id, sender_username, gift_id, stars, message) VALUES (?, ?, ?, ?, ?, ?)",
-                (user_gift.id, sender_id, sender_username, gift_id, stars, msg_text)
+        # Если это подарок (MessageActionStarGift), отправляем благодарность
+        if "StarGift" in action_type:
+            text = (
+                f"Спасибо за подарок!\n"
+                f"Тип действия: {action_type}\n"
             )
-            conn.commit()
-            print(f"Подарок от {sender_username or sender_id} сохранён в базе.")
-
-        await asyncio.sleep(5)  # Проверять каждые 5 секунд
+            if sender_id:
+                await client.send_message(sender_id, text)
 
 async def main():
     await client.start(phone=phone_number)
     await client.send_message("me", "Успешно<3")
-    print("Userbot успешно запущен и слушает подарки...")
-    await check_new_gifts()
+    print("Userbot успешно запущен и слушает сервисные сообщения...")
+    await client.run_until_disconnected()
 
 if __name__ == "__main__":
     asyncio.run(main())
