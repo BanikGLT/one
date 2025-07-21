@@ -7,7 +7,7 @@ from telethon.tl.types import InputUserSelf
 api_id = 27613166
 api_hash = "f8db5c0f8345c59926194dd36a07062b"
 phone_number = "+79301221411"
-session_name = "userbot"  # имя файла сессии (userbot.session)
+session_name = "userbot"
 
 # --- Инициализация базы данных ---
 conn = sqlite3.connect("gifts.db")
@@ -34,7 +34,6 @@ async def check_new_gifts():
             limit=100
         ))
         for user_gift in gifts.gifts:
-            # user_gift.id — уникальный id подарка
             cursor.execute("SELECT 1 FROM gifts WHERE id = ?", (user_gift.id,))
             if cursor.fetchone():
                 continue  # уже обработан
@@ -51,7 +50,7 @@ async def check_new_gifts():
             stars = user_gift.gift.stars
             msg_text = getattr(user_gift, "message", "")
 
-            # Отправляем отправителю инфу о подарке
+            # Отправляем благодарность отправителю
             if sender_id:
                 text = (
                     f"Спасибо за подарок!\n"
@@ -72,7 +71,7 @@ async def check_new_gifts():
         await asyncio.sleep(5)  # Проверять каждые 5 секунд
 
 async def main():
-    await client.start(phone=phone_number)  # Только при первом запуске спросит номер/код, потом будет использовать сессию
+    await client.start(phone=phone_number)
     await client.send_message("me", "Успешно<3")
     print("Userbot успешно запущен и слушает подарки...")
     await check_new_gifts()
