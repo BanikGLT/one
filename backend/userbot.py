@@ -25,20 +25,17 @@ conn.commit()
 
 client = TelegramClient(session_name, api_id, api_hash)
 
-@client.on(events.MessageEdited)
 @client.on(events.NewMessage)
 async def handler(event):
-    if not event.is_service:
-        return
-    action = getattr(event.action, "__class__", None)
-    if action in [MessageActionStarGift, MessageActionStarGiftUnique]:
+    action = getattr(event.message, "action", None)
+    if isinstance(action, (MessageActionStarGift, MessageActionStarGiftUnique)):
         sender = await event.get_sender()
         sender_id = sender.id if sender else None
         sender_username = sender.username if sender else None
-        gift = getattr(event.action, "gift", None)
+        gift = getattr(action, "gift", None)
         gift_id = getattr(gift, "id", None)
         stars = getattr(gift, "stars", None)
-        msg_text = getattr(event.action, "message", "")
+        msg_text = getattr(action, "message", "")
 
         # 1. Отправляем отправителю инфу о подарке
         if sender_id:
