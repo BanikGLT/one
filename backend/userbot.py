@@ -1,6 +1,7 @@
 import sqlite3
-from pyrogram import Client, filters
-from pyrogram.raw.types import MessageActionStarGift
+from telethon import TelegramClient, events
+from telethon.tl.types import MessageActionStarGift, MessageActionStarGiftUnique
+import asyncio
 
 api_id = "YOUR_API_ID"
 api_hash = "YOUR_API_HASH"
@@ -21,20 +22,24 @@ CREATE TABLE IF NOT EXISTS gifts (
 """)
 conn.commit()
 
-app = Client(session_name, api_id=api_id, api_hash=api_hash)
+client = TelegramClient(session_name, api_id, api_hash)
 
-@app.on_message(filters.service)
-async def handle_service_message(client, message):
-    if isinstance(message.action, MessageActionStarGift):
-        sender = message.from_user
-        gift = message.action.gift
-        gift_id = gift.id
-        stars = gift.stars
+@client.on(events.MessageEdited)
+@client.on(events.NewMessage)
+async def handler(event):
+    if not event.is_service:
+        return
+    action = getattr(event.action, "__class__", None)
+    if action in [MessageActionStarGift, MessageActionStarGiftUnique]:
+        sender = await event.get_sender()
         sender_id = sender.id if sender else None
         sender_username = sender.username if sender else None
-        msg_text = getattr(message.action, "message", "")
+        gift = getattr(event.action, "gift", None)
+        gift_id = getattr(gift, "id", None)
+        stars = getattr(gift, "stars", None)
+        msg_text = getattr(event.action, "message", "")
 
-        # 1. Отправляем отправителю подарок инфу о подарке
+        # 1. Отправляем отправителю инфу о подарке
         if sender_id:
             text = (
                 f"Спасибо за подарок!\n"
@@ -42,7 +47,10 @@ async def handle_service_message(client, message):
                 f"Звёзд: {stars}\n"
                 f"Сообщение: {msg_text}"
             )
-            await client.send_message(sender_id, text)
+            try:
+                await client.send_message(sender_id, text)
+            except Exception as e:
+                print(f"Не удалось отправить сообщение отправителю: {e}")
 
         # 2. Сохраняем в базе
         cursor.execute(
@@ -52,4 +60,6 @@ async def handle_service_message(client, message):
         conn.commit()
         print(f"Подарок от {sender_username or sender_id} сохранён в базе.")
 
-app.run() 
+if __name__ == "__main__":
+    with client:
+        client.loop.run_forever() 
