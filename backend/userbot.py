@@ -1,7 +1,7 @@
 import sqlite3
 from telethon import TelegramClient, events
 from telethon.tl.types import MessageActionStarGift, MessageActionStarGiftUnique
-from telethon.tl.functions.payments import GetReceivedGifts
+from telethon.tl.functions.payments import GetStarGifts
 import asyncio
 
 api_id = 27613166
@@ -32,7 +32,7 @@ async def poll_gifts():
     while True:
         try:
             print("[INFO] Запрашиваю список полученных подарков...")
-            gifts = await client(GetReceivedGifts())
+            gifts = await client(GetStarGifts())
             print(f"[INFO] Получено подарков: {len(gifts.gifts)}")
             for gift in gifts.gifts:
                 if gift.id not in last_gift_ids:
