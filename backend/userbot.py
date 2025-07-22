@@ -1,6 +1,7 @@
 import sqlite3
 from telethon import TelegramClient, events
 from telethon.tl.types import MessageActionStarGift, MessageActionStarGiftUnique
+from telethon.tl.functions.payments import GetReceivedGifts
 import asyncio
 
 api_id = 27613166
@@ -25,39 +26,54 @@ conn.commit()
 
 client = TelegramClient(session_name, api_id, api_hash)
 
-@client.on(events.NewMessage)
-async def handler(event):
-    action = getattr(event.message, "action", None)
-    if isinstance(action, (MessageActionStarGift, MessageActionStarGiftUnique)):
-        sender = await event.get_sender()
-        sender_id = sender.id if sender else None
-        sender_username = sender.username if sender else None
-        gift = getattr(action, "gift", None)
-        gift_id = getattr(gift, "id", None)
-        stars = getattr(gift, "stars", None)
-        msg_text = getattr(action, "message", "")
-
-        # 1. Отправляем отправителю инфу о подарке
-        if sender_id:
-            text = (
-                f"Спасибо за подарок!\n"
-                f"ID подарка: {gift_id}\n"
-                f"Звёзд: {stars}\n"
-                f"Сообщение: {msg_text}"
-            )
-            try:
-                await client.send_message(sender_id, text)
-            except Exception as e:
-                print(f"Не удалось отправить сообщение отправителю: {e}")
-
-        # 2. Сохраняем в базе
-        cursor.execute(
-            "INSERT INTO gifts (sender_id, sender_username, gift_id, stars, message) VALUES (?, ?, ?, ?, ?)",
-            (sender_id, sender_username, gift_id, stars, msg_text)
-        )
-        conn.commit()
-        print(f"Подарок от {sender_username or sender_id} сохранён в базе.")
+async def poll_gifts():
+    print("[INFO] Запуск опроса подарков...")
+    last_gift_ids = set()
+    while True:
+        try:
+            print("[INFO] Запрашиваю список полученных подарков...")
+            gifts = await client(GetReceivedGifts())
+            print(f"[INFO] Получено подарков: {len(gifts.gifts)}")
+            for gift in gifts.gifts:
+                if gift.id not in last_gift_ids:
+                    sender_id = getattr(gift.from_id, 'user_id', None)
+                    sender_username = None
+                    if sender_id:
+                        try:
+                            sender = await client.get_entity(sender_id)
+                            sender_username = getattr(sender, 'username', None)
+                        except Exception as e:
+                            print(f"[WARN] Не удалось получить username отправителя: {e}")
+                    gift_id = gift.gift.id if hasattr(gift, 'gift') and hasattr(gift.gift, 'id') else None
+                    stars = gift.gift.stars if hasattr(gift, 'gift') and hasattr(gift.gift, 'stars') else None
+                    msg_text = getattr(gift, 'message', '')
+                    print(f"[NEW GIFT] ID: {gift_id}, Stars: {stars}, From: {sender_username or sender_id}, Message: {msg_text}")
+                    # Отправляем ответ
+                    if sender_id:
+                        text = (
+                            f"Спасибо за подарок!\n"
+                            f"ID подарка: {gift_id}\n"
+                            f"Звёзд: {stars}\n"
+                            f"Сообщение: {msg_text}"
+                        )
+                        try:
+                            await client.send_message(sender_id, text)
+                            print(f"[INFO] Ответ отправлен пользователю {sender_username or sender_id}")
+                        except Exception as e:
+                            print(f"[ERROR] Не удалось отправить сообщение отправителю: {e}")
+                    # Сохраняем в базе
+                    cursor.execute(
+                        "INSERT INTO gifts (sender_id, sender_username, gift_id, stars, message) VALUES (?, ?, ?, ?, ?)",
+                        (sender_id, sender_username, gift_id, stars, msg_text)
+                    )
+                    conn.commit()
+                    print(f"[INFO] Подарок от {sender_username or sender_id} сохранён в базе.")
+            last_gift_ids = {gift.id for gift in gifts.gifts}
+        except Exception as e:
+            print(f"[ERROR] Ошибка при опросе подарков: {e}")
+        await asyncio.sleep(10)
 
 if __name__ == "__main__":
     with client:
+        client.loop.create_task(poll_gifts())
         client.loop.run_forever() 
