@@ -29,12 +29,19 @@ client = TelegramClient(session_name, api_id, api_hash)
 async def poll_gifts():
     print("[INFO] Запуск опроса подарков...")
     last_gift_ids = set()
+    me = await client.get_me()
+    my_id = me.id
+    print(f"[INFO] Мой user_id: {my_id}")
     while True:
         try:
             print("[INFO] Запрашиваю список полученных подарков...")
-            gifts = await client(GetStarGifts())
-            print(f"[INFO] Получено подарков: {len(gifts.gifts)}")
+            gifts = await client(GetStarGifts(offset_id=0, limit=100))
+            print(f"[INFO] Получено подарков (всего): {len(gifts.gifts)}")
             for gift in gifts.gifts:
+                # Фильтруем только входящие подарки (где to_id — это мой user_id)
+                to_id = getattr(gift.to_id, 'user_id', None)
+                if to_id != my_id:
+                    continue
                 if gift.id not in last_gift_ids:
                     sender_id = getattr(gift.from_id, 'user_id', None)
                     sender_username = None
@@ -47,7 +54,7 @@ async def poll_gifts():
                     gift_id = gift.gift.id if hasattr(gift, 'gift') and hasattr(gift.gift, 'id') else None
                     stars = gift.gift.stars if hasattr(gift, 'gift') and hasattr(gift.gift, 'stars') else None
                     msg_text = getattr(gift, 'message', '')
-                    print(f"[NEW GIFT] ID: {gift_id}, Stars: {stars}, From: {sender_username or sender_id}, Message: {msg_text}")
+                    print(f"[NEW INCOMING GIFT] ID: {gift_id}, Stars: {stars}, From: {sender_username or sender_id}, Message: {msg_text}")
                     # Отправляем ответ
                     if sender_id:
                         text = (
@@ -68,7 +75,8 @@ async def poll_gifts():
                     )
                     conn.commit()
                     print(f"[INFO] Подарок от {sender_username or sender_id} сохранён в базе.")
-            last_gift_ids = {gift.id for gift in gifts.gifts}
+            # Обновляем только входящие подарки
+            last_gift_ids = {gift.id for gift in gifts.gifts if getattr(gift.to_id, 'user_id', None) == my_id}
         except Exception as e:
             print(f"[ERROR] Ошибка при опросе подарков: {e}")
         await asyncio.sleep(10)
