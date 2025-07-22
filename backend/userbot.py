@@ -3,8 +3,9 @@ from telethon import TelegramClient, events
 from telethon.tl.types import MessageActionStarGift, MessageActionStarGiftUnique
 import asyncio
 
-api_id = "YOUR_API_ID"
-api_hash = "YOUR_API_HASH"
+api_id = 27613166
+api_hash = "f8db5c0f8345c59926194dd36a07062b"
+phone_number = "+79301221411"
 session_name = "userbot"
 
 # --- Инициализация базы данных ---
