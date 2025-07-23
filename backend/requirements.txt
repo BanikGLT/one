@@ -1,11 +1,7 @@
-# Telegram Gift Detector - Professional Edition
-# Зависимости для коммерческого использования
-
-# Основная библиотека для работы с Telegram API
-pyrogram>=2.0.106
-
-# Криптографическая библиотека для ускорения работы
-tgcrypto>=1.2.5
-
-# Дополнительные зависимости для стабильной работы
-asyncio>=3.4.3
+pyfiglet==1.0.2
+asyncio==3.4.3
+pyrofork==2.3.61
+tgcrypto-pyrofork==1.2.7
+configparser==7.2.0
+python-i18n==0.3.9
+PyYAML==6.0.2
