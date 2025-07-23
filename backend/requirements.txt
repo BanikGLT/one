@@ -1,5 +1,0 @@
-fastapi
-uvicorn
-pyrogram
-tgcrypto 
-telethon 
