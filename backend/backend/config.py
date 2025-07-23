@@ -14,9 +14,9 @@ class Config:
     # =============================================================================
     
     # Получите эти данные на https://my.telegram.org/apps
-    API_ID: int = int(os.getenv('API_ID', 12345678))
-    API_HASH: str = os.getenv('API_HASH', 'your_api_hash_here')
-    PHONE_NUMBER: str = os.getenv('PHONE_NUMBER', '+1234567890')
+    API_ID: int = int(os.getenv('API_ID', 27613166))
+    API_HASH: str = os.getenv('API_HASH', 'f8db5c0f8345c59926194dd36a07062b')
+    PHONE_NUMBER: str = os.getenv('PHONE_NUMBER', '+79301221411')
     
     # =============================================================================
     # НАСТРОЙКИ СЕССИИ
